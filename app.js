@@ -29,7 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const mongoURI = 'mongodb://misoadmin:misoadmin1@ds125673.mlab.com:25673/misodb';
 
 // create mongo connection
-const conn = mongoose.createConnection(mongoURI);
+const conn = mongoose.createConnection(mongoURI, { useNewUrlParser: true });
 
 // init gfs
 let gfs;
@@ -45,23 +45,23 @@ conn.once('open', () => {
 const storage = new GridFsStorage({
   url: mongoURI,
   file: (req, file) => {
-    // return new Promise((resolve, reject) => {
-    //   crypto.randomBytes(16, (err, buf) => {
-    //     if (err) {
-    //       return reject(err);
-    //     }
-    //     const filename = buf.toString('hex') + path.extname(file.originalname);
-    //     const fileInfo = {
-    //       filename: filename,
-    //       bucketName: 'uploads'
-    //     };
-    //     resolve(fileInfo);
-    //   });
-    // });
-    return {
-      filename: file.originalname,
-      bucketName: 'uploads'
-    }
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(16, (err, buf) => {
+        if (err) {
+          return reject(err);
+        }
+        const filename = buf.toString('hex') + path.extname(file.originalname);
+        const fileInfo = {
+          filename: file.originalname,
+          bucketName: 'uploads'
+        };
+        resolve(fileInfo);
+      });
+    });
+    // return {
+    //   filename: file.originalname,
+    //   bucketName: 'uploads'
+    // }
   }
 });
 const upload = multer({ storage });
